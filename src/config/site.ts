@@ -49,14 +49,17 @@ export const site = {
   avatar: "", // optional image URL, leave empty to use initials
 
   // ---- Background music ----
-  // Drop an mp3 in /public (e.g. public/music/track.mp3) and reference it here,
-  // OR paste any direct audio URL.
+  // Add as many tracks as you want. Drop mp3s in /public/music/ and reference
+  // them here, OR paste any direct audio URL. Users can switch between them.
   music: {
     enabled: true,
-    src: "/music/track.mp3",
-    title: "Lofi Background",
     autoplay: true, // browsers may still require a user click first
     volume: 0.4,
+    tracks: [
+      { title: "Lofi Background", src: "/music/track.mp3" },
+      { title: "Chill Beats",     src: "/music/track2.mp3" },
+      { title: "Night Drive",     src: "/music/track3.mp3" },
+    ],
   },
 
   // ---- Sections of links ----
