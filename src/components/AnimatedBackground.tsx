@@ -19,6 +19,37 @@ export function AnimatedBackground() {
   const [settingsRaw] = useBgSettings();
   const s = mounted ? settingsRaw : DEFAULT_BG;
 
+  // Blur background while hovering interactive elements
+  const [hoverBlur, setHoverBlur] = useState(false);
+  useEffect(() => {
+    const isInteractive = (el: EventTarget | null) =>
+      !!(el as HTMLElement | null)?.closest?.(
+        'a,button,[role="button"],input,textarea,select,label',
+      );
+    const onOver = (e: MouseEvent) => { if (isInteractive(e.target)) setHoverBlur(true); };
+    const onOut = (e: MouseEvent) => {
+      if (isInteractive(e.target) && !isInteractive(e.relatedTarget)) setHoverBlur(false);
+    };
+    window.addEventListener("mouseover", onOver);
+    window.addEventListener("mouseout", onOut);
+    return () => {
+      window.removeEventListener("mouseover", onOver);
+      window.removeEventListener("mouseout", onOut);
+    };
+  }, []);
+
+  // Snowflakes
+  const snowCount = Math.round(40 + (s.particles / 100) * 30);
+  const snow = Array.from({ length: snowCount }, (_, i) => {
+    const left = (i * 41) % 100;
+    const delay = (i * 0.43) % 18;
+    const duration = 12 + ((i * 1.7) % 18);
+    const size = 2 + ((i * 3) % 5);
+    const drift = -40 + ((i * 17) % 80);
+    const opacity = 0.4 + ((i % 5) * 0.12);
+    return { left, delay, duration, size, drift, opacity, key: i };
+  });
+
   const starCount = Math.round((s.stars / 100) * 120);
   const particleCount = Math.round((s.particles / 100) * 60);
   const blobCount = Math.max(0, Math.round((s.blobs / 100) * 8));
