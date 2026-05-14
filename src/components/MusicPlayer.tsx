@@ -360,8 +360,8 @@ export function MusicPlayer() {
           <SkipForward className="h-4 w-4" />
         </button>
 
-        {/* Visualizer */}
-        <div className="hidden h-8 items-end gap-px px-2 sm:flex" aria-hidden>
+        {/* Visualizer (always visible) */}
+        <div className="flex h-8 items-end gap-px px-2" aria-hidden>
           {bars.map((v, i) => (
             <span
               key={i}
@@ -371,22 +371,25 @@ export function MusicPlayer() {
           ))}
         </div>
 
-        <div className="hidden min-w-0 max-w-[120px] px-1 text-xs sm:block">
+        <div className="hidden min-w-0 max-w-[120px] px-1 text-xs md:block">
           <div className="truncate font-medium">{current.title}</div>
           <div className="truncate text-[10px] text-muted-foreground">
             {safeIndex + 1} / {tracks.length}
           </div>
         </div>
 
-        {/* Volume */}
+        {/* Volume slider (always visible) */}
         <input
           type="range"
           min={0}
           max={1}
           step={0.01}
-          value={state.volume}
-          onChange={(e) => setState((s) => ({ ...s, volume: Number(e.target.value) }))}
-          className="hidden h-1 w-16 cursor-pointer appearance-none rounded-full bg-muted accent-primary md:block"
+          value={state.muted ? 0 : state.volume}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            setState((s) => ({ ...s, volume: v, muted: v === 0 ? s.muted : false }));
+          }}
+          className="h-1 w-16 cursor-pointer appearance-none rounded-full bg-muted accent-primary sm:w-20"
           aria-label="Volume"
         />
 
