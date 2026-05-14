@@ -213,7 +213,55 @@ export function MusicPlayer() {
   const next = () => switchTo((safeIndex + 1) % tracks.length);
   const prev = () => switchTo((safeIndex - 1 + tracks.length) % tracks.length);
 
+  // ---- Track current time / duration of the active element ----
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      const el = activeRef.current === "A" ? audioARef.current : audioBRef.current;
+      if (el) {
+        setTime({
+          current: el.currentTime || 0,
+          duration: Number.isFinite(el.duration) ? el.duration : 0,
+        });
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const seek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = activeRef.current === "A" ? audioARef.current : audioBRef.current;
+    if (!el || !time.duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    el.currentTime = Math.max(0, Math.min(time.duration, pct * time.duration));
+  };
+
+  // ---- Keyboard shortcuts ----
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (e.code === "Space") { e.preventDefault(); toggle(); }
+      else if (e.code === "ArrowRight" && (e.shiftKey || tracks.length > 1)) { e.preventDefault(); next(); }
+      else if (e.code === "ArrowLeft"  && (e.shiftKey || tracks.length > 1)) { e.preventDefault(); prev(); }
+      else if (e.key.toLowerCase() === "m") { setState((s) => ({ ...s, muted: !s.muted })); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [safeIndex, state.volume, state.muted]);
+
   if (!site.music.enabled || tracks.length === 0) return null;
+
+  const fmt = (s: number) => {
+    if (!Number.isFinite(s) || s < 0) s = 0;
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60).toString().padStart(2, "0");
+    return `${m}:${sec}`;
+  };
+  const progressPct = time.duration ? (time.current / time.duration) * 100 : 0;
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
