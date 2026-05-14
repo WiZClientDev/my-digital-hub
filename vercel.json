@@ -1,6 +1,17 @@
 {
   "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "outputDirectory": ".vercel/output",
-  "framework": null
+  "framework": null,
+  "builds": [
+    {
+      "src": "server-entry.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server-entry.js"
+    }
+  ]
 }
