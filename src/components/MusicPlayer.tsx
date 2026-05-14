@@ -27,6 +27,7 @@ export function MusicPlayer() {
 
   const [playing, setPlaying] = useState(false);
   const [open, setOpen] = useState(false);
+  const [time, setTime] = useState({ current: 0, duration: 0 });
 
   // Two audio elements for crossfade
   const audioARef = useRef<HTMLAudioElement | null>(null);
