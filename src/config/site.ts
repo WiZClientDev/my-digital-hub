@@ -117,8 +117,7 @@ export const site = {
           icon: Globe,
         },
       ],
-    },
-  ] satisfies LinkSection[],
+  ] as LinkSection[]),
 
   // ---- Projects ----
   projects: [
