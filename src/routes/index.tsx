@@ -169,6 +169,7 @@ function Index() {
         </footer>
       </main>
 
+      <SettingsPanel />
       <MusicPlayer />
     </div>
   );
