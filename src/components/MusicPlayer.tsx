@@ -322,6 +322,53 @@ export function MusicPlayer() {
               className="h-4 w-4 accent-primary"
             />
           </label>
+          <div className="flex items-center justify-between border-t border-border/40 px-3 py-2 text-xs">
+            <span className="text-muted-foreground">Visualizer</span>
+            <button
+              onClick={() => setState((s) => ({ ...s, vizEnabled: !s.vizEnabled }))}
+              className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider transition ${
+                state.vizEnabled ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {state.vizEnabled ? "On" : "Off"}
+            </button>
+          </div>
+          <div className="flex items-center justify-between border-t border-border/40 px-3 py-2 text-xs">
+            <span className="text-muted-foreground">Style</span>
+            <div className="flex overflow-hidden rounded-full border border-border/60">
+              <button
+                onClick={() => setState((s) => ({ ...s, vizStyle: "bars" }))}
+                className={`flex items-center gap-1 px-2 py-0.5 text-[10px] transition ${
+                  state.vizStyle === "bars" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Activity className="h-3 w-3" /> Bars
+              </button>
+              <button
+                onClick={() => setState((s) => ({ ...s, vizStyle: "wave" }))}
+                className={`flex items-center gap-1 px-2 py-0.5 text-[10px] transition ${
+                  state.vizStyle === "wave" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <AudioWaveform className="h-3 w-3" /> Wave
+              </button>
+            </div>
+          </div>
+          <label className="flex items-center justify-between gap-3 border-t border-border/40 px-3 py-2 text-xs">
+            <span className="text-muted-foreground">Sensitivity</span>
+            <input
+              type="range"
+              min={0.2}
+              max={3}
+              step={0.05}
+              value={state.vizSensitivity}
+              onChange={(e) => setState((s) => ({ ...s, vizSensitivity: Number(e.target.value) }))}
+              className="h-1 w-28 cursor-pointer appearance-none rounded-full bg-muted accent-primary"
+            />
+            <span className="w-8 text-right tabular-nums text-muted-foreground">
+              {state.vizSensitivity.toFixed(2)}
+            </span>
+          </label>
         </div>
       )}
 
