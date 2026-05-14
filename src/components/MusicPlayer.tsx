@@ -73,7 +73,7 @@ export function MusicPlayer() {
       const gA = ctx.createGain();
       const gB = ctx.createGain();
       const analyser = ctx.createAnalyser();
-      analyser.fftSize = 128;
+      analyser.fftSize = 256;
       gA.gain.value = activeRef.current === "A" ? state.volume : 0;
       gB.gain.value = activeRef.current === "B" ? state.volume : 0;
       srcA.connect(gA).connect(analyser);
