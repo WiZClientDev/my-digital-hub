@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLink } from "lucide-react";
-import { site } from "@/config/site";
+import { site, type LinkItem, type Project } from "@/config/site";
 import { MusicPlayer } from "@/components/MusicPlayer";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { CustomCursor } from "@/components/CustomCursor";
+import { faviconFor, useLinkPreview } from "@/components/LinkPreview";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,19 +27,101 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+function LinkCard({ item }: { item: LinkItem }) {
+  const Icon = item.icon;
+  const mode = item.preview ?? "favicon";
+  const { data } = useLinkPreview(item.url, mode === "rich");
+  const favicon = mode !== "none" ? faviconFor(item.url) : null;
+
+  return (
+    <a
+      href={item.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group relative flex items-center gap-4 overflow-hidden rounded-xl border border-border/60 bg-card/40 p-4 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-card/70 hover:shadow-[0_0_30px_-5px_oklch(0.7_0.2_280/0.4)]"
+    >
+      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+        <Icon className="h-5 w-5" />
+        {favicon && (
+          <img
+            src={favicon}
+            alt=""
+            className="absolute -bottom-1 -right-1 h-4 w-4 rounded-sm border border-border/60 bg-background"
+            loading="lazy"
+          />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 font-medium">{item.label}</div>
+        {(item.description || data?.description) && (
+          <div className="truncate text-sm text-muted-foreground">
+            {item.description ?? data?.description}
+          </div>
+        )}
+      </div>
+      {mode === "rich" && data?.image && (
+        <img
+          src={data.image}
+          alt=""
+          className="hidden h-12 w-20 shrink-0 rounded-md object-cover opacity-80 sm:block"
+          loading="lazy"
+        />
+      )}
+      <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
+    </a>
+  );
+}
+
+function ProjectCard({ p }: { p: Project }) {
+  const enabled = (p.preview ?? "rich") === "rich";
+  const { data } = useLinkPreview(p.url, enabled);
+
+  return (
+    <a
+      href={p.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group relative overflow-hidden rounded-xl border border-border/60 bg-card/40 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_0_40px_-8px_oklch(0.7_0.2_280/0.5)]"
+    >
+      {data?.image && (
+        <div className="aspect-[16/8] w-full overflow-hidden border-b border-border/40">
+          <img
+            src={data.image}
+            alt={p.name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        </div>
+      )}
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold">{p.name}</h3>
+              {p.tag && (
+                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {p.tag}
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
+          </div>
+          <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
+        </div>
+      </div>
+    </a>
+  );
+}
+
 function Index() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
-      {/* Ambient gradient background */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-accent/30 blur-3xl" />
-      </div>
+    <div className="relative min-h-screen text-foreground">
+      <AnimatedBackground />
+      <CustomCursor />
 
       <main className="mx-auto max-w-3xl px-6 py-16 sm:py-24">
-        {/* Header */}
-        <header className="flex flex-col items-center text-center">
-          <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-border bg-card text-2xl font-semibold shadow-lg">
+        <header className="flex flex-col items-center text-center animate-fade-in">
+          <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-card/60 text-2xl font-semibold shadow-lg backdrop-blur-md">
             {site.avatar ? (
               <img src={site.avatar} alt={site.name} className="h-full w-full object-cover" />
             ) : (
@@ -50,73 +135,28 @@ function Index() {
           <p className="mt-6 max-w-xl text-base text-muted-foreground">{site.bio}</p>
         </header>
 
-        {/* Link sections */}
         <div className="mt-16 space-y-12">
           {site.sections.map((section) => (
-            <section key={section.title}>
+            <section key={section.title} className="animate-fade-in">
               <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                 {section.title}
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
-                {section.items.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <a
-                      key={item.label}
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center gap-4 rounded-xl border border-border bg-card/60 p-4 backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-primary/50 hover:bg-card hover:shadow-lg"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-medium">{item.label}</div>
-                        {item.description && (
-                          <div className="truncate text-sm text-muted-foreground">
-                            {item.description}
-                          </div>
-                        )}
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
-                    </a>
-                  );
-                })}
+                {section.items.map((item) => (
+                  <LinkCard key={item.label} item={item} />
+                ))}
               </div>
             </section>
           ))}
 
-          {/* Projects */}
           {site.projects.length > 0 && (
-            <section>
+            <section className="animate-fade-in">
               <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                 Projects
               </h2>
-              <div className="grid gap-3">
+              <div className="grid gap-4 sm:grid-cols-2">
                 {site.projects.map((p) => (
-                  <a
-                    key={p.name}
-                    href={p.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group rounded-xl border border-border bg-card/60 p-5 backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-primary/50 hover:bg-card hover:shadow-lg"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{p.name}</h3>
-                          {p.tag && (
-                            <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-                              {p.tag}
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
-                      </div>
-                      <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
-                    </div>
-                  </a>
+                  <ProjectCard key={p.name} p={p} />
                 ))}
               </div>
             </section>
