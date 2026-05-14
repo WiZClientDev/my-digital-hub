@@ -2,19 +2,12 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "framework": null,
-  "builds": [
-    {
-      "src": "server-entry.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["dist/**"]
-      }
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "dist/**"
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "server-entry.js"
-    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/index" }
   ]
 }
