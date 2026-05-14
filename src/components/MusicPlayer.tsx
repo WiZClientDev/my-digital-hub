@@ -1,15 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ListMusic,
+  Activity, AudioWaveform, EyeOff, Eye,
 } from "lucide-react";
 import { site } from "@/config/site";
 import { useLocalStorage } from "@/lib/useLocalStorage";
 
+type VizStyle = "bars" | "wave";
 type MusicState = {
   index: number;
   volume: number;
   muted: boolean;
   autoplay: boolean;
+  vizEnabled: boolean;
+  vizStyle: VizStyle;
+  vizSensitivity: number; // 0.2 .. 3
 };
 
 const FADE_MS = 1200;
