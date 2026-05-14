@@ -52,6 +52,10 @@ export function MusicPlayer() {
   // Visualizer
   const [bars, setBars] = useState<number[]>(() => Array(BARS).fill(0));
   const rafRef = useRef<number>(0);
+  const vizStyleRef = useRef<VizStyle>(state.vizStyle);
+  const sensRef = useRef<number>(state.vizSensitivity);
+  useEffect(() => { vizStyleRef.current = state.vizStyle; }, [state.vizStyle]);
+  useEffect(() => { sensRef.current = state.vizSensitivity; }, [state.vizSensitivity]);
 
   const safeIndex = Math.min(Math.max(0, state.index), Math.max(0, tracks.length - 1));
   const current = tracks[safeIndex];
