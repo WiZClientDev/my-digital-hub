@@ -93,15 +93,27 @@ export function MusicPlayer() {
   const runViz = () => {
     const analyser = analyserRef.current;
     if (!analyser) return;
-    const data = new Uint8Array(analyser.frequencyBinCount);
+    const freq = new Uint8Array(analyser.frequencyBinCount);
+    const time = new Uint8Array(analyser.fftSize);
     const tick = () => {
-      analyser.getByteFrequencyData(data);
-      const step = Math.floor(data.length / BARS) || 1;
+      const sens = sensRef.current;
       const next: number[] = [];
-      for (let i = 0; i < BARS; i++) {
-        let sum = 0;
-        for (let j = 0; j < step; j++) sum += data[i * step + j] || 0;
-        next.push(sum / step / 255);
+      if (vizStyleRef.current === "wave") {
+        analyser.getByteTimeDomainData(time);
+        const step = Math.floor(time.length / BARS) || 1;
+        for (let i = 0; i < BARS; i++) {
+          // center around 128, normalize to -1..1, then 0..1
+          const v = (time[i * step] - 128) / 128;
+          next.push(Math.min(1, Math.abs(v) * sens));
+        }
+      } else {
+        analyser.getByteFrequencyData(freq);
+        const step = Math.floor(freq.length / BARS) || 1;
+        for (let i = 0; i < BARS; i++) {
+          let sum = 0;
+          for (let j = 0; j < step; j++) sum += freq[i * step + j] || 0;
+          next.push(Math.min(1, (sum / step / 255) * sens));
+        }
       }
       setBars(next);
       rafRef.current = requestAnimationFrame(tick);
