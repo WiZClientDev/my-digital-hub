@@ -86,7 +86,11 @@ export function AnimatedBackground() {
   });
 
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div
+      className={`pointer-events-none fixed inset-0 -z-10 overflow-hidden transition-[filter] duration-500 ${
+        hoverBlur ? "bg-blurred" : ""
+      }`}
+    >
       <div className="absolute inset-0 bg-background" />
 
       {stars.map((s) => (
@@ -146,9 +150,27 @@ export function AnimatedBackground() {
         />
       ))}
 
+      {/* Snowflakes */}
+      {snow.map((f) => (
+        <span
+          key={`f-${f.key}`}
+          className="snowflake"
+          style={{
+            left: `${f.left}%`,
+            width: `${f.size}px`,
+            height: `${f.size}px`,
+            opacity: f.opacity,
+            ["--snow-drift" as string]: `${f.drift}px`,
+            animationDelay: `${f.delay}s`,
+            animationDuration: `${f.duration}s`,
+          }}
+        />
+      ))}
+
       {s.grid && <div className="bg-grid" />}
 
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.55))]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.7))]" />
     </div>
   );
+}
 }
