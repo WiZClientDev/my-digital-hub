@@ -53,7 +53,7 @@ export const site = {
   },
 
   // ---- Sections of links ----
-  sections: [
+  sections: ([
     {
       title: "Channels",
       items: [
