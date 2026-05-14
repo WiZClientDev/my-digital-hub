@@ -1,15 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ListMusic,
+  Activity, AudioWaveform, EyeOff, Eye,
 } from "lucide-react";
 import { site } from "@/config/site";
 import { useLocalStorage } from "@/lib/useLocalStorage";
 
+type VizStyle = "bars" | "wave";
 type MusicState = {
   index: number;
   volume: number;
   muted: boolean;
   autoplay: boolean;
+  vizEnabled: boolean;
+  vizStyle: VizStyle;
+  vizSensitivity: number; // 0.2 .. 3
 };
 
 const FADE_MS = 1200;
@@ -23,6 +28,9 @@ export function MusicPlayer() {
     volume: site.music.volume,
     muted: false,
     autoplay: site.music.autoplay,
+    vizEnabled: true,
+    vizStyle: "bars",
+    vizSensitivity: 1,
   });
 
   const [playing, setPlaying] = useState(false);
@@ -44,6 +52,10 @@ export function MusicPlayer() {
   // Visualizer
   const [bars, setBars] = useState<number[]>(() => Array(BARS).fill(0));
   const rafRef = useRef<number>(0);
+  const vizStyleRef = useRef<VizStyle>(state.vizStyle);
+  const sensRef = useRef<number>(state.vizSensitivity);
+  useEffect(() => { vizStyleRef.current = state.vizStyle; }, [state.vizStyle]);
+  useEffect(() => { sensRef.current = state.vizSensitivity; }, [state.vizSensitivity]);
 
   const safeIndex = Math.min(Math.max(0, state.index), Math.max(0, tracks.length - 1));
   const current = tracks[safeIndex];
@@ -61,7 +73,7 @@ export function MusicPlayer() {
       const gA = ctx.createGain();
       const gB = ctx.createGain();
       const analyser = ctx.createAnalyser();
-      analyser.fftSize = 128;
+      analyser.fftSize = 256;
       gA.gain.value = activeRef.current === "A" ? state.volume : 0;
       gB.gain.value = activeRef.current === "B" ? state.volume : 0;
       srcA.connect(gA).connect(analyser);
@@ -81,15 +93,27 @@ export function MusicPlayer() {
   const runViz = () => {
     const analyser = analyserRef.current;
     if (!analyser) return;
-    const data = new Uint8Array(analyser.frequencyBinCount);
+    const freq = new Uint8Array(analyser.frequencyBinCount);
+    const time = new Uint8Array(analyser.fftSize);
     const tick = () => {
-      analyser.getByteFrequencyData(data);
-      const step = Math.floor(data.length / BARS) || 1;
+      const sens = sensRef.current;
       const next: number[] = [];
-      for (let i = 0; i < BARS; i++) {
-        let sum = 0;
-        for (let j = 0; j < step; j++) sum += data[i * step + j] || 0;
-        next.push(sum / step / 255);
+      if (vizStyleRef.current === "wave") {
+        analyser.getByteTimeDomainData(time);
+        const step = Math.floor(time.length / BARS) || 1;
+        for (let i = 0; i < BARS; i++) {
+          // center around 128, normalize to -1..1, then 0..1
+          const v = (time[i * step] - 128) / 128;
+          next.push(Math.min(1, Math.abs(v) * sens));
+        }
+      } else {
+        analyser.getByteFrequencyData(freq);
+        const step = Math.floor(freq.length / BARS) || 1;
+        for (let i = 0; i < BARS; i++) {
+          let sum = 0;
+          for (let j = 0; j < step; j++) sum += freq[i * step + j] || 0;
+          next.push(Math.min(1, (sum / step / 255) * sens));
+        }
       }
       setBars(next);
       rafRef.current = requestAnimationFrame(tick);
@@ -298,6 +322,53 @@ export function MusicPlayer() {
               className="h-4 w-4 accent-primary"
             />
           </label>
+          <div className="flex items-center justify-between border-t border-border/40 px-3 py-2 text-xs">
+            <span className="text-muted-foreground">Visualizer</span>
+            <button
+              onClick={() => setState((s) => ({ ...s, vizEnabled: !s.vizEnabled }))}
+              className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider transition ${
+                state.vizEnabled ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {state.vizEnabled ? "On" : "Off"}
+            </button>
+          </div>
+          <div className="flex items-center justify-between border-t border-border/40 px-3 py-2 text-xs">
+            <span className="text-muted-foreground">Style</span>
+            <div className="flex overflow-hidden rounded-full border border-border/60">
+              <button
+                onClick={() => setState((s) => ({ ...s, vizStyle: "bars" }))}
+                className={`flex items-center gap-1 px-2 py-0.5 text-[10px] transition ${
+                  state.vizStyle === "bars" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Activity className="h-3 w-3" /> Bars
+              </button>
+              <button
+                onClick={() => setState((s) => ({ ...s, vizStyle: "wave" }))}
+                className={`flex items-center gap-1 px-2 py-0.5 text-[10px] transition ${
+                  state.vizStyle === "wave" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <AudioWaveform className="h-3 w-3" /> Wave
+              </button>
+            </div>
+          </div>
+          <label className="flex items-center justify-between gap-3 border-t border-border/40 px-3 py-2 text-xs">
+            <span className="text-muted-foreground">Sensitivity</span>
+            <input
+              type="range"
+              min={0.2}
+              max={3}
+              step={0.05}
+              value={state.vizSensitivity}
+              onChange={(e) => setState((s) => ({ ...s, vizSensitivity: Number(e.target.value) }))}
+              className="h-1 w-28 cursor-pointer appearance-none rounded-full bg-muted accent-primary"
+            />
+            <span className="w-8 text-right tabular-nums text-muted-foreground">
+              {state.vizSensitivity.toFixed(2)}
+            </span>
+          </label>
         </div>
       )}
 
@@ -360,16 +431,42 @@ export function MusicPlayer() {
           <SkipForward className="h-4 w-4" />
         </button>
 
-        {/* Visualizer (always visible) */}
-        <div className="flex h-8 items-end gap-px px-2" aria-hidden>
-          {bars.map((v, i) => (
-            <span
-              key={i}
-              className="viz-bar"
-              style={{ height: `${Math.max(2, v * 28)}px` }}
-            />
-          ))}
-        </div>
+        {/* Visualizer */}
+        {state.vizEnabled && (
+          <div className="flex h-8 items-end gap-px px-2" aria-hidden>
+            {state.vizStyle === "wave"
+              ? bars.map((v, i) => {
+                  const h = Math.max(2, v * 28);
+                  return (
+                    <span
+                      key={i}
+                      className="viz-bar"
+                      style={{
+                        height: `${h}px`,
+                        alignSelf: "center",
+                        opacity: 0.85,
+                      }}
+                    />
+                  );
+                })
+              : bars.map((v, i) => (
+                  <span
+                    key={i}
+                    className="viz-bar"
+                    style={{ height: `${Math.max(2, v * 28)}px` }}
+                  />
+                ))}
+          </div>
+        )}
+
+        <button
+          onClick={() => setState((s) => ({ ...s, vizEnabled: !s.vizEnabled }))}
+          aria-label={state.vizEnabled ? "Hide visualizer" : "Show visualizer"}
+          title={state.vizEnabled ? "Hide visualizer" : "Show visualizer"}
+          className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground"
+        >
+          {state.vizEnabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+        </button>
 
         <div className="hidden min-w-0 max-w-[120px] px-1 text-xs md:block">
           <div className="truncate font-medium">{current.title}</div>
