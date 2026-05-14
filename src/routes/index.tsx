@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ExternalLink, ArrowUpRight } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { profile, sections, projects, type LinkItem, type Project } from "@/config/site";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
@@ -39,39 +39,36 @@ function LinkCard({ item }: { item: LinkItem }) {
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative flex items-center gap-3.5 overflow-hidden rounded-xl border border-border/50 bg-card/30 p-3.5 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-card/60 hover:shadow-lg"
+      className="group relative flex items-center gap-4 overflow-hidden rounded-xl border border-border/60 bg-card/40 p-4 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-card/70 hover:shadow-[0_0_30px_-5px_oklch(0.7_0.2_280/0.4)]"
     >
-      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20 transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:ring-primary">
-        <Icon className="h-4.5 w-4.5 h-[18px] w-[18px]" />
+      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+        <Icon className="h-5 w-5" />
         {favicon && (
           <img
             src={favicon}
             alt=""
-            className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded border border-border/60 bg-background object-contain"
+            className="absolute -bottom-1 -right-1 h-4 w-4 rounded-sm border border-border/60 bg-background"
             loading="lazy"
           />
         )}
       </div>
-
       <div className="min-w-0 flex-1">
-        <p className="font-medium leading-tight">{item.label}</p>
+        <div className="flex items-center gap-2 font-medium">{item.label}</div>
         {(item.description || data?.description) && (
-          <p className="mt-0.5 truncate text-sm text-muted-foreground">
+          <div className="truncate text-sm text-muted-foreground">
             {item.description ?? data?.description}
-          </p>
+          </div>
         )}
       </div>
-
       {mode === "rich" && data?.image && (
         <img
           src={data.image}
           alt=""
-          className="hidden h-10 w-16 shrink-0 rounded-md object-cover opacity-70 transition-opacity group-hover:opacity-100 sm:block"
+          className="hidden h-12 w-20 shrink-0 rounded-md object-cover opacity-80 sm:block"
           loading="lazy"
         />
       )}
-
-      <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground/50 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary" />
+      <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
     </a>
   );
 }
@@ -85,47 +82,35 @@ function ProjectCard({ p }: { p: Project }) {
       href={p.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card/30 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:bg-card/60 hover:shadow-xl"
+      className="group relative overflow-hidden rounded-xl border border-border/60 bg-card/40 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_0_40px_-8px_oklch(0.7_0.2_280/0.5)]"
     >
-      {data?.image ? (
-        <div className="aspect-[16/7] w-full overflow-hidden">
+      {data?.image && (
+        <div className="aspect-[16/8] w-full overflow-hidden border-b border-border/40">
           <img
             src={data.image}
             alt={p.name}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-card/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
         </div>
-      ) : null}
-      <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
+      )}
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
               <h3 className="font-semibold">{p.name}</h3>
               {p.tag && (
-                <span className="rounded-full border border-border/60 bg-muted/50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
                   {p.tag}
                 </span>
               )}
             </div>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{p.description}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
           </div>
-          <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/40 transition-all group-hover:text-primary" />
+          <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
         </div>
       </div>
     </a>
-  );
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="mb-4 flex items-center gap-3">
-      <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
-        {children}
-      </h2>
-      <div className="h-px flex-1 bg-border/40" />
-    </div>
   );
 }
 
@@ -135,38 +120,29 @@ function Index() {
       <AnimatedBackground />
       <CustomCursor />
 
-      <main className="mx-auto max-w-2xl px-5 py-16 sm:py-24">
-
-        {/* Profile header */}
-        <header className="mb-16 flex flex-col items-center text-center">
-          <div className="relative mb-6">
-            <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-border/50 bg-card/60 shadow-xl ring-4 ring-background backdrop-blur-md">
-              {profile.avatar ? (
-                <img src={profile.avatar} alt={profile.name} className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-foreground/80">
-                  {initials(profile.name)}
-                </div>
-              )}
-            </div>
-            <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-background bg-emerald-500 shadow-sm" />
+      <main className="mx-auto max-w-3xl px-6 py-16 sm:py-24">
+        <header className="flex flex-col items-center text-center animate-fade-in">
+          <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-card/60 text-2xl font-semibold shadow-lg backdrop-blur-md">
+            {profile.avatar ? (
+              <img src={profile.avatar} alt={profile.name} className="h-full w-full object-cover" />
+            ) : (
+              <span>{initials(profile.name)}</span>
+            )}
           </div>
-
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{profile.name}</h1>
-          <p className="mt-2 text-sm font-medium uppercase tracking-[0.18em] text-muted-foreground/70">
+          <h1 className="mt-6 text-4xl font-bold tracking-tight sm:text-5xl">{profile.name}</h1>
+          <p className="mt-2 text-sm uppercase tracking-[0.2em] text-muted-foreground">
             {profile.tagline}
           </p>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground/90">
-            {profile.bio}
-          </p>
+          <p className="mt-6 max-w-xl text-base text-muted-foreground">{profile.bio}</p>
         </header>
 
-        {/* Link sections */}
-        <div className="space-y-10">
+        <div className="mt-16 space-y-12">
           {sections.map((section) => (
-            <section key={section.title}>
-              <SectionLabel>{section.title}</SectionLabel>
-              <div className="grid gap-2.5 sm:grid-cols-2">
+            <section key={section.title} className="animate-fade-in">
+              <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                {section.title}
+              </h2>
+              <div className="flex flex-col gap-3">
                 {section.items.map((item) => (
                   <LinkCard key={item.label} item={item} />
                 ))}
@@ -175,9 +151,11 @@ function Index() {
           ))}
 
           {projects.length > 0 && (
-            <section>
-              <SectionLabel>Projects</SectionLabel>
-              <div className="grid gap-3 sm:grid-cols-2">
+            <section className="animate-fade-in">
+              <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Projects
+              </h2>
+              <div className="flex flex-col gap-4">
                 {projects.map((p) => (
                   <ProjectCard key={p.name} p={p} />
                 ))}
@@ -186,14 +164,8 @@ function Index() {
           )}
         </div>
 
-        <footer className="mt-20 flex flex-col items-center gap-2 text-center text-xs text-muted-foreground/50">
-          <p>
-            Edit{" "}
-            <code className="rounded bg-muted/60 px-1.5 py-0.5 font-mono text-[11px]">
-              src/config/site.ts
-            </code>{" "}
-            to customize
-          </p>
+        <footer className="mt-20 text-center text-xs text-muted-foreground">
+          Edit <code className="rounded bg-muted px-1.5 py-0.5">src/config/site.ts</code> to customize this page.
         </footer>
       </main>
 

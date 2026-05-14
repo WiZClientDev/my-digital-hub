@@ -1,5 +1,12 @@
 // ============================================================
-//  SITE CONFIGURATION — edit this file to customize your page
+//  YOUR SITE — EDIT THIS FILE TO CUSTOMIZE EVERYTHING
+// ============================================================
+//  To add a link:     copy an item in the section you want
+//  To add a section:  copy a whole { title, items } block
+//  To add a track:    add { title, src } to the tracks array
+//  To add a project:  add { name, description, url } to projects
+//  To remove:         just delete the entry
+//  Icons list:        https://lucide.dev/icons
 // ============================================================
 
 import {
@@ -14,14 +21,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-// ---- Types ----
+// ---- Types (you can ignore these) ----
 
 export type LinkItem = {
   label: string;
   description?: string;
   url: string;
   icon: LucideIcon;
-  /** "favicon" = small icon (default) | "rich" = fetch OG image | "none" */
   preview?: "favicon" | "rich" | "none";
 };
 
@@ -32,7 +38,7 @@ export type LinkSection = {
 
 export type Track = {
   title: string;
-  /** Local path like "/music/song.mp3"  OR any direct audio URL */
+  /** Local path like "/music/song.mp3" or any direct audio URL */
   src: string;
 };
 
@@ -41,12 +47,11 @@ export type Project = {
   description: string;
   url: string;
   tag?: string;
-  /** "rich" = show OG preview image (default) | "none" = skip */
   preview?: "rich" | "none";
 };
 
 // ============================================================
-//  PROFILE
+//  1. PROFILE
 // ============================================================
 
 export const profile = {
@@ -58,7 +63,7 @@ export const profile = {
 };
 
 // ============================================================
-//  MUSIC
+//  2. MUSIC
 //  Drop MP3s in /public/music/ and reference them below,
 //  or use any direct audio URL.
 //  You can also add/remove tracks live from the player UI.
@@ -66,9 +71,7 @@ export const profile = {
 
 export const music = {
   enabled: true,
-  /** Try to autoplay on load — browser may still require a user click */
   autoplay: false,
-  /** Default volume: 0 to 1 */
   volume: 0.5,
   tracks: [
     { title: "Lofi Background", src: "/music/track.mp3" },
@@ -78,9 +81,9 @@ export const music = {
 };
 
 // ============================================================
-//  LINKS
-//  Add as many sections and items as you like.
-//  Icons: https://lucide.dev/icons
+//  3. LINKS
+//  Each section has a title and an array of link items.
+//  Copy/paste items or sections to add more.
 // ============================================================
 
 export const sections: LinkSection[] = [
@@ -151,7 +154,7 @@ export const sections: LinkSection[] = [
 ];
 
 // ============================================================
-//  PROJECTS
+//  4. PROJECTS
 // ============================================================
 
 export const projects: Project[] = [
@@ -168,6 +171,3 @@ export const projects: Project[] = [
     tag: "Open Source",
   },
 ];
-
-// ---- Re-export for components that use the old `site` import ----
-export const site = { ...profile, music, sections, projects };
