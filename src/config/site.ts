@@ -117,6 +117,7 @@ export const site = {
           icon: Globe,
         },
       ],
+    },
   ] as LinkSection[]),
 
   // ---- Projects ----
