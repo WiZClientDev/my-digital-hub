@@ -384,16 +384,42 @@ export function MusicPlayer() {
           <SkipForward className="h-4 w-4" />
         </button>
 
-        {/* Visualizer (always visible) */}
-        <div className="flex h-8 items-end gap-px px-2" aria-hidden>
-          {bars.map((v, i) => (
-            <span
-              key={i}
-              className="viz-bar"
-              style={{ height: `${Math.max(2, v * 28)}px` }}
-            />
-          ))}
-        </div>
+        {/* Visualizer */}
+        {state.vizEnabled && (
+          <div className="flex h-8 items-end gap-px px-2" aria-hidden>
+            {state.vizStyle === "wave"
+              ? bars.map((v, i) => {
+                  const h = Math.max(2, v * 28);
+                  return (
+                    <span
+                      key={i}
+                      className="viz-bar"
+                      style={{
+                        height: `${h}px`,
+                        alignSelf: "center",
+                        opacity: 0.85,
+                      }}
+                    />
+                  );
+                })
+              : bars.map((v, i) => (
+                  <span
+                    key={i}
+                    className="viz-bar"
+                    style={{ height: `${Math.max(2, v * 28)}px` }}
+                  />
+                ))}
+          </div>
+        )}
+
+        <button
+          onClick={() => setState((s) => ({ ...s, vizEnabled: !s.vizEnabled }))}
+          aria-label={state.vizEnabled ? "Hide visualizer" : "Show visualizer"}
+          title={state.vizEnabled ? "Hide visualizer" : "Show visualizer"}
+          className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground"
+        >
+          {state.vizEnabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+        </button>
 
         <div className="hidden min-w-0 max-w-[120px] px-1 text-xs md:block">
           <div className="truncate font-medium">{current.title}</div>
