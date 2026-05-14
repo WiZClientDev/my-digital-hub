@@ -28,6 +28,9 @@ export function MusicPlayer() {
     volume: site.music.volume,
     muted: false,
     autoplay: site.music.autoplay,
+    vizEnabled: true,
+    vizStyle: "bars",
+    vizSensitivity: 1,
   });
 
   const [playing, setPlaying] = useState(false);
