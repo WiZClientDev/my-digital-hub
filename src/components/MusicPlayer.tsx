@@ -301,6 +301,34 @@ export function MusicPlayer() {
         </div>
       )}
 
+      {/* Progress + time */}
+      <div className="flex w-full max-w-[420px] items-center gap-2 rounded-full border border-border/60 bg-card/70 px-3 py-1.5 shadow-lg backdrop-blur-md">
+        <span className="w-9 text-right text-[10px] tabular-nums text-muted-foreground">
+          {fmt(time.current)}
+        </span>
+        <div
+          onClick={seek}
+          role="slider"
+          aria-label="Seek"
+          aria-valuemin={0}
+          aria-valuemax={Math.round(time.duration)}
+          aria-valuenow={Math.round(time.current)}
+          className="group relative h-1.5 flex-1 cursor-pointer overflow-hidden rounded-full bg-muted"
+        >
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-primary to-primary/60 transition-[width] duration-100"
+            style={{ width: `${progressPct}%` }}
+          />
+          <div
+            className="absolute top-1/2 h-3 w-3 -translate-y-1/2 -translate-x-1/2 rounded-full bg-primary opacity-0 shadow transition group-hover:opacity-100"
+            style={{ left: `${progressPct}%` }}
+          />
+        </div>
+        <span className="w-9 text-[10px] tabular-nums text-muted-foreground">
+          {fmt(time.duration)}
+        </span>
+      </div>
+
       {/* Player bar */}
       <div className="flex items-center gap-1.5 rounded-full border border-border/60 bg-card/80 px-2 py-2 shadow-lg backdrop-blur-md">
         <audio ref={audioARef} preload="auto" onEnded={next} crossOrigin="anonymous" />
