@@ -1,101 +1,336 @@
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward } from "lucide-react";
+import {
+  Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ListMusic,
+} from "lucide-react";
 import { site } from "@/config/site";
+import { useLocalStorage } from "@/lib/useLocalStorage";
+
+type MusicState = {
+  index: number;
+  volume: number;
+  muted: boolean;
+  autoplay: boolean;
+};
+
+const FADE_MS = 1200;
+const BARS = 28;
 
 export function MusicPlayer() {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(false);
-  const [index, setIndex] = useState(0);
-
   const tracks = site.music.tracks;
-  const current = tracks[index];
 
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
-    a.volume = site.music.volume;
-  }, []);
+  const [state, setState] = useLocalStorage<MusicState>("music-state", {
+    index: 0,
+    volume: site.music.volume,
+    muted: false,
+    autoplay: site.music.autoplay,
+  });
 
-  // When the track index changes, load + (auto)play
+  const [playing, setPlaying] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  // Two audio elements for crossfade
+  const audioARef = useRef<HTMLAudioElement | null>(null);
+  const audioBRef = useRef<HTMLAudioElement | null>(null);
+  const activeRef = useRef<"A" | "B">("A");
+
+  // Web Audio graph
+  const ctxRef = useRef<AudioContext | null>(null);
+  const gainARef = useRef<GainNode | null>(null);
+  const gainBRef = useRef<GainNode | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const initedRef = useRef(false);
+
+  // Visualizer
+  const [bars, setBars] = useState<number[]>(() => Array(BARS).fill(0));
+  const rafRef = useRef<number>(0);
+
+  const safeIndex = Math.min(Math.max(0, state.index), Math.max(0, tracks.length - 1));
+  const current = tracks[safeIndex];
+
+  // ---- Init Web Audio on first user gesture ----
+  const initAudio = () => {
+    if (initedRef.current) return;
+    const a = audioARef.current, b = audioBRef.current;
+    if (!a || !b) return;
+    try {
+      const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new Ctx();
+      const srcA = ctx.createMediaElementSource(a);
+      const srcB = ctx.createMediaElementSource(b);
+      const gA = ctx.createGain();
+      const gB = ctx.createGain();
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 128;
+      gA.gain.value = activeRef.current === "A" ? state.volume : 0;
+      gB.gain.value = activeRef.current === "B" ? state.volume : 0;
+      srcA.connect(gA).connect(analyser);
+      srcB.connect(gB).connect(analyser);
+      analyser.connect(ctx.destination);
+      ctxRef.current = ctx;
+      gainARef.current = gA;
+      gainBRef.current = gB;
+      analyserRef.current = analyser;
+      initedRef.current = true;
+      runViz();
+    } catch {
+      // Some browsers may fail; we'll still use HTMLAudio volume directly
+    }
+  };
+
+  const runViz = () => {
+    const analyser = analyserRef.current;
+    if (!analyser) return;
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    const tick = () => {
+      analyser.getByteFrequencyData(data);
+      const step = Math.floor(data.length / BARS) || 1;
+      const next: number[] = [];
+      for (let i = 0; i < BARS; i++) {
+        let sum = 0;
+        for (let j = 0; j < step; j++) sum += data[i * step + j] || 0;
+        next.push(sum / step / 255);
+      }
+      setBars(next);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(tick);
+  };
+
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
+
+  // ---- Apply volume / mute live ----
   useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
-    a.load();
-    if (site.music.autoplay || playing) {
-      a.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+    const a = audioARef.current, b = audioBRef.current;
+    if (a) a.muted = state.muted;
+    if (b) b.muted = state.muted;
+    // adjust active gain only (inactive stays at 0 between fades)
+    const gActive = activeRef.current === "A" ? gainARef.current : gainBRef.current;
+    const ctx = ctxRef.current;
+    if (gActive && ctx) {
+      gActive.gain.cancelScheduledValues(ctx.currentTime);
+      gActive.gain.setValueAtTime(state.volume, ctx.currentTime);
+    } else {
+      // fallback when web audio not initialised
+      if (a) a.volume = activeRef.current === "A" ? state.volume : 0;
+      if (b) b.volume = activeRef.current === "B" ? state.volume : 0;
+    }
+  }, [state.volume, state.muted]);
+
+  // ---- Initial: load active audio, autoplay if requested ----
+  useEffect(() => {
+    const active = activeRef.current === "A" ? audioARef.current : audioBRef.current;
+    const inactive = activeRef.current === "A" ? audioBRef.current : audioARef.current;
+    if (!active) return;
+    if (active.src !== window.location.origin + current.src && !active.src.endsWith(current.src)) {
+      active.src = current.src;
+      active.load();
+    }
+    if (inactive) {
+      // pre-zero the inactive without web audio
+      inactive.volume = 0;
+    } else {
+      // unused
+    }
+    if (state.autoplay) {
+      active.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index]);
+  }, []);
 
-  const toggle = () => {
-    const a = audioRef.current;
-    if (!a) return;
-    if (a.paused) {
-      a.play().then(() => setPlaying(true)).catch(() => {});
+  // ---- Play / pause toggle ----
+  const toggle = async () => {
+    initAudio();
+    const ctx = ctxRef.current;
+    if (ctx?.state === "suspended") await ctx.resume();
+    const active = activeRef.current === "A" ? audioARef.current : audioBRef.current;
+    if (!active) return;
+    if (active.paused) {
+      try {
+        await active.play();
+        setPlaying(true);
+      } catch { /* ignore */ }
     } else {
-      a.pause();
+      active.pause();
       setPlaying(false);
     }
   };
 
-  const toggleMute = () => {
-    const a = audioRef.current;
-    if (!a) return;
-    a.muted = !a.muted;
-    setMuted(a.muted);
+  // ---- Crossfade to a new index ----
+  const switchTo = async (newIndex: number) => {
+    if (newIndex === safeIndex) return;
+    initAudio();
+    const ctx = ctxRef.current;
+    if (ctx?.state === "suspended") await ctx.resume();
+
+    const fromKey = activeRef.current;
+    const toKey: "A" | "B" = fromKey === "A" ? "B" : "A";
+    const fromEl = fromKey === "A" ? audioARef.current : audioBRef.current;
+    const toEl   = toKey   === "A" ? audioARef.current : audioBRef.current;
+    const fromGain = fromKey === "A" ? gainARef.current : gainBRef.current;
+    const toGain   = toKey   === "A" ? gainARef.current : gainBRef.current;
+    if (!fromEl || !toEl) return;
+
+    toEl.src = tracks[newIndex].src;
+    toEl.muted = state.muted;
+    toEl.load();
+
+    try { await toEl.play(); } catch { /* ignore */ }
+
+    const now = ctx?.currentTime ?? 0;
+    const fadeSec = FADE_MS / 1000;
+    if (ctx && fromGain && toGain) {
+      fromGain.gain.cancelScheduledValues(now);
+      toGain.gain.cancelScheduledValues(now);
+      fromGain.gain.setValueAtTime(fromGain.gain.value, now);
+      toGain.gain.setValueAtTime(0, now);
+      fromGain.gain.linearRampToValueAtTime(0, now + fadeSec);
+      toGain.gain.linearRampToValueAtTime(state.volume, now + fadeSec);
+    } else {
+      // CSS-style fallback
+      const start = performance.now();
+      const startVol = fromEl.volume;
+      const animate = (t: number) => {
+        const k = Math.min(1, (t - start) / FADE_MS);
+        fromEl.volume = startVol * (1 - k);
+        toEl.volume = state.volume * k;
+        if (k < 1) requestAnimationFrame(animate);
+        else fromEl.pause();
+      };
+      requestAnimationFrame(animate);
+    }
+
+    setTimeout(() => {
+      fromEl.pause();
+    }, FADE_MS + 50);
+
+    activeRef.current = toKey;
+    setState((s) => ({ ...s, index: newIndex }));
+    setPlaying(true);
   };
 
-  const next = () => setIndex((i) => (i + 1) % tracks.length);
-  const prev = () => setIndex((i) => (i - 1 + tracks.length) % tracks.length);
+  const next = () => switchTo((safeIndex + 1) % tracks.length);
+  const prev = () => switchTo((safeIndex - 1 + tracks.length) % tracks.length);
 
   if (!site.music.enabled || tracks.length === 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex items-center gap-1.5 rounded-full border border-border/60 bg-card/80 px-2 py-2 shadow-lg backdrop-blur-md">
-      <audio
-        ref={audioRef}
-        src={current.src}
-        loop={tracks.length === 1}
-        onEnded={tracks.length > 1 ? next : undefined}
-        preload="auto"
-      />
-      <button
-        onClick={prev}
-        aria-label="Previous track"
-        disabled={tracks.length < 2}
-        className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground disabled:opacity-30"
-      >
-        <SkipBack className="h-4 w-4" />
-      </button>
-      <button
-        onClick={toggle}
-        aria-label={playing ? "Pause music" : "Play music"}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:opacity-90"
-      >
-        {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-      </button>
-      <button
-        onClick={next}
-        aria-label="Next track"
-        disabled={tracks.length < 2}
-        className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground disabled:opacity-30"
-      >
-        <SkipForward className="h-4 w-4" />
-      </button>
-      <div className="hidden min-w-0 max-w-[140px] px-2 text-xs sm:block">
-        <div className="truncate font-medium">{current.title}</div>
-        <div className="truncate text-[10px] text-muted-foreground">
-          {index + 1} / {tracks.length}
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
+      {/* Track list dropdown */}
+      {open && (
+        <div className="w-64 origin-bottom-right animate-scale-in overflow-hidden rounded-xl border border-border/60 bg-card/90 shadow-2xl backdrop-blur-xl">
+          <div className="border-b border-border/40 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Playlist
+          </div>
+          <ul className="max-h-64 overflow-y-auto py-1">
+            {tracks.map((t, i) => (
+              <li key={`${t.src}-${i}`}>
+                <button
+                  onClick={() => { switchTo(i); setOpen(false); }}
+                  className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition hover:bg-muted/60 ${
+                    i === safeIndex ? "bg-primary/10 text-primary" : ""
+                  }`}
+                >
+                  <span className="w-5 text-xs tabular-nums text-muted-foreground">{i + 1}</span>
+                  <span className="flex-1 truncate">{t.title}</span>
+                  {i === safeIndex && playing && (
+                    <span className="text-[10px] uppercase tracking-wider">Now</span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <label className="flex items-center justify-between border-t border-border/40 px-3 py-2 text-xs">
+            <span className="text-muted-foreground">Autoplay on load</span>
+            <input
+              type="checkbox"
+              checked={state.autoplay}
+              onChange={(e) => setState((s) => ({ ...s, autoplay: e.target.checked }))}
+              className="h-4 w-4 accent-primary"
+            />
+          </label>
         </div>
+      )}
+
+      {/* Player bar */}
+      <div className="flex items-center gap-1.5 rounded-full border border-border/60 bg-card/80 px-2 py-2 shadow-lg backdrop-blur-md">
+        <audio ref={audioARef} preload="auto" onEnded={next} crossOrigin="anonymous" />
+        <audio ref={audioBRef} preload="auto" onEnded={next} crossOrigin="anonymous" />
+
+        <button
+          onClick={prev}
+          aria-label="Previous track"
+          disabled={tracks.length < 2}
+          className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground disabled:opacity-30"
+        >
+          <SkipBack className="h-4 w-4" />
+        </button>
+
+        <button
+          onClick={toggle}
+          aria-label={playing ? "Pause music" : "Play music"}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:opacity-90"
+        >
+          {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+        </button>
+
+        <button
+          onClick={next}
+          aria-label="Next track"
+          disabled={tracks.length < 2}
+          className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground disabled:opacity-30"
+        >
+          <SkipForward className="h-4 w-4" />
+        </button>
+
+        {/* Visualizer */}
+        <div className="hidden h-8 items-end gap-px px-2 sm:flex" aria-hidden>
+          {bars.map((v, i) => (
+            <span
+              key={i}
+              className="viz-bar"
+              style={{ height: `${Math.max(2, v * 28)}px` }}
+            />
+          ))}
+        </div>
+
+        <div className="hidden min-w-0 max-w-[120px] px-1 text-xs sm:block">
+          <div className="truncate font-medium">{current.title}</div>
+          <div className="truncate text-[10px] text-muted-foreground">
+            {safeIndex + 1} / {tracks.length}
+          </div>
+        </div>
+
+        {/* Volume */}
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={state.volume}
+          onChange={(e) => setState((s) => ({ ...s, volume: Number(e.target.value) }))}
+          className="hidden h-1 w-16 cursor-pointer appearance-none rounded-full bg-muted accent-primary md:block"
+          aria-label="Volume"
+        />
+
+        <button
+          onClick={() => setState((s) => ({ ...s, muted: !s.muted }))}
+          aria-label={state.muted ? "Unmute" : "Mute"}
+          className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground"
+        >
+          {state.muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+        </button>
+
+        <button
+          onClick={() => setOpen((o) => !o)}
+          aria-label="Playlist"
+          className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
+            open ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <ListMusic className="h-4 w-4" />
+        </button>
       </div>
-      <button
-        onClick={toggleMute}
-        aria-label={muted ? "Unmute" : "Mute"}
-        className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground"
-      >
-        {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-      </button>
     </div>
   );
 }

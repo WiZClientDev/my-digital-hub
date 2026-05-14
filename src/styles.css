@@ -302,3 +302,31 @@ html.custom-cursor-active * {
 @media (prefers-reduced-motion: reduce) {
   .aurora, .star, .bg-grid, .blob-5 { animation: none !important; }
 }
+
+/* ===== More aurora variants + viz ===== */
+.aurora-4 {
+  position: absolute;
+  inset: -20%;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    oklch(0.75 0.22 50 / 0.35) 80deg,
+    transparent 160deg,
+    oklch(0.7 0.22 130 / 0.3) 240deg,
+    transparent 360deg
+  );
+  filter: blur(70px);
+  mix-blend-mode: screen;
+  animation: aurora-spin 50s linear infinite reverse;
+  will-change: transform;
+  transform: scale(1.1);
+}
+
+.viz-bar {
+  display: inline-block;
+  width: 3px;
+  margin: 0 1px;
+  background: linear-gradient(to top, oklch(0.7 0.22 285), oklch(0.78 0.2 200));
+  border-radius: 2px;
+  transition: height 0.06s linear;
+}
