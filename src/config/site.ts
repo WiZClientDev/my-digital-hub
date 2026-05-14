@@ -20,6 +20,11 @@ export type LinkItem = {
   description?: string;
   url: string;
   icon: LucideIcon;
+  // Preview behavior:
+  //   "favicon" (default) — small favicon next to the icon
+  //   "rich"               — fetches OG image + description (great for articles/sites)
+  //   "none"               — no preview, just the icon
+  preview?: "favicon" | "rich" | "none";
 };
 
 export type LinkSection = {
@@ -32,6 +37,8 @@ export type Project = {
   description: string;
   url: string;
   tag?: string;
+  // Set to "rich" to auto-fetch a screenshot/OG image preview. Default: "rich".
+  preview?: "rich" | "none";
 };
 
 export const site = {
