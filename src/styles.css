@@ -4,20 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
- */
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -143,84 +129,167 @@
   }
 }
 
-/* ===== Animated background ===== */
+/* ===== Blobs ===== */
 .blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(80px);
-  opacity: 0.55;
+  filter: blur(90px);
   will-change: transform;
-}
-.blob-1 {
-  top: -10%;
-  left: -10%;
-  width: 55vw;
-  height: 55vw;
-  background: radial-gradient(circle, oklch(0.65 0.22 285) 0%, transparent 70%);
-  animation: blob-float-a 22s ease-in-out infinite;
-}
-.blob-2 {
-  bottom: -15%;
-  right: -10%;
-  width: 60vw;
-  height: 60vw;
-  background: radial-gradient(circle, oklch(0.7 0.2 200) 0%, transparent 70%);
-  animation: blob-float-b 28s ease-in-out infinite;
-}
-.blob-3 {
-  top: 30%;
-  right: 10%;
-  width: 35vw;
-  height: 35vw;
-  background: radial-gradient(circle, oklch(0.7 0.22 340) 0%, transparent 70%);
-  animation: blob-float-c 32s ease-in-out infinite;
-  opacity: 0.4;
-}
-.blob-4 {
-  bottom: 10%;
-  left: 20%;
-  width: 30vw;
-  height: 30vw;
-  background: radial-gradient(circle, oklch(0.7 0.2 150) 0%, transparent 70%);
-  animation: blob-float-a 26s ease-in-out infinite reverse;
-  opacity: 0.35;
+  transition: opacity 0.8s ease;
 }
 
 @keyframes blob-float-a {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(8%, 12%) scale(1.1); }
-  66% { transform: translate(-6%, 8%) scale(0.95); }
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  25% { transform: translate(6%, 10%) scale(1.08) rotate(2deg); }
+  50% { transform: translate(10%, 5%) scale(1.12) rotate(-1deg); }
+  75% { transform: translate(-4%, 8%) scale(0.96) rotate(1deg); }
 }
 @keyframes blob-float-b {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-10%, -8%) scale(1.15); }
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  33% { transform: translate(-8%, -6%) scale(1.1) rotate(-2deg); }
+  66% { transform: translate(-12%, -10%) scale(1.18) rotate(1deg); }
 }
 @keyframes blob-float-c {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(12%, -10%) scale(1.08); }
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  30% { transform: translate(10%, -8%) scale(1.06) rotate(1deg); }
+  60% { transform: translate(14%, -12%) scale(1.1) rotate(-1deg); }
+  80% { transform: translate(6%, -4%) scale(0.97) rotate(0deg); }
 }
 
+/* ===== Particles ===== */
 .particle {
   position: absolute;
   bottom: -10px;
   border-radius: 9999px;
-  background: oklch(0.95 0.02 280);
-  box-shadow: 0 0 8px 1px oklch(0.85 0.1 280 / 0.6);
   animation-name: particle-rise;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   will-change: transform, opacity;
 }
 @keyframes particle-rise {
-  0%   { transform: translateY(0) translateX(0); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { transform: translateY(-110vh) translateX(40px); opacity: 0; }
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  8%   { opacity: 1; transform: translateY(-8vh) translateX(10px) scale(1.1); }
+  50%  { transform: translateY(-55vh) translateX(-20px) scale(0.9); }
+  92%  { opacity: 1; }
+  100% { transform: translateY(-110vh) translateX(30px) scale(0.7); opacity: 0; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .blob, .particle { animation: none !important; }
+/* ===== Stars ===== */
+.star {
+  position: absolute;
+  border-radius: 9999px;
+  background: white;
+  --star-brightness: 0.6;
+  animation-name: star-twinkle;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  will-change: opacity, transform;
 }
+@keyframes star-twinkle {
+  0%, 100% { opacity: calc(0.1 * var(--star-brightness)); transform: scale(0.7); }
+  50%      { opacity: var(--star-brightness); transform: scale(1.3); }
+}
+
+/* ===== Aurora ===== */
+.aurora {
+  position: absolute;
+  inset: -25%;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+.aurora-1 {
+  background: conic-gradient(
+    from 90deg at 50% 50%,
+    transparent 0deg,
+    oklch(0.72 0.2 200 / 0.3) 50deg,
+    transparent 110deg,
+    oklch(0.72 0.22 340 / 0.25) 190deg,
+    transparent 250deg,
+    oklch(0.72 0.2 150 / 0.2) 310deg,
+    transparent 360deg
+  );
+  filter: blur(70px);
+  animation: aurora-spin 45s linear infinite;
+}
+.aurora-2 {
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    transparent 0deg,
+    oklch(0.72 0.2 240 / 0.25) 70deg,
+    transparent 140deg,
+    oklch(0.75 0.22 50 / 0.2) 210deg,
+    transparent 280deg,
+    oklch(0.72 0.22 285 / 0.2) 340deg,
+    transparent 360deg
+  );
+  filter: blur(80px);
+  animation: aurora-spin 65s linear infinite reverse;
+}
+.aurora-3 {
+  background: conic-gradient(
+    from 270deg at 50% 50%,
+    transparent 0deg,
+    oklch(0.72 0.22 340 / 0.2) 60deg,
+    transparent 130deg,
+    oklch(0.72 0.2 200 / 0.2) 200deg,
+    transparent 270deg,
+    oklch(0.72 0.2 150 / 0.15) 330deg,
+    transparent 360deg
+  );
+  filter: blur(90px);
+  animation: aurora-spin 85s linear infinite;
+  transform: scale(1.3);
+}
+.aurora-4 {
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    oklch(0.75 0.22 50 / 0.25) 80deg,
+    transparent 160deg,
+    oklch(0.72 0.2 130 / 0.2) 240deg,
+    transparent 360deg
+  );
+  filter: blur(75px);
+  animation: aurora-spin 55s linear infinite reverse;
+  transform: scale(1.1);
+}
+
+@keyframes aurora-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== Snowflakes ===== */
+.snowflake {
+  position: absolute;
+  top: -10px;
+  border-radius: 9999px;
+  background: white;
+  box-shadow: 0 0 6px 1px rgba(255,255,255,0.5);
+  animation-name: snow-fall;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  will-change: transform, opacity;
+}
+@keyframes snow-fall {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+  8%   { opacity: 1; }
+  50%  { transform: translateY(55vh) translateX(calc(var(--snow-drift, 0px) * 0.5)) rotate(180deg); }
+  92%  { opacity: 1; }
+  100% { transform: translateY(110vh) translateX(var(--snow-drift, 0px)) rotate(360deg); opacity: 0; }
+}
+
+/* ===== Visualizer bars ===== */
+.viz-bar {
+  display: inline-block;
+  width: 3px;
+  margin: 0 1px;
+  background: linear-gradient(to top, oklch(0.72 0.2 200), oklch(0.75 0.22 50));
+  border-radius: 2px;
+  transition: height 0.06s linear;
+}
+
+/* ===== Hover blur ===== */
+.bg-blurred { filter: blur(6px) brightness(0.9); }
 
 /* ===== Custom cursor ===== */
 html.custom-cursor-active,
@@ -228,129 +297,7 @@ html.custom-cursor-active * {
   cursor: none !important;
 }
 
-/* ===== Extra background layers ===== */
-.blob-5 {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(90px);
-  top: 50%;
-  left: 50%;
-  width: 40vw;
-  height: 40vw;
-  background: radial-gradient(circle, oklch(0.7 0.22 50) 0%, transparent 70%);
-  animation: blob-float-b 36s ease-in-out infinite;
-  opacity: 0.3;
-  will-change: transform;
-}
-
-.aurora {
-  position: absolute;
-  inset: -20%;
-  background: conic-gradient(
-    from 90deg at 50% 50%,
-    transparent 0deg,
-    oklch(0.7 0.2 280 / 0.35) 60deg,
-    transparent 120deg,
-    oklch(0.7 0.2 200 / 0.35) 200deg,
-    transparent 260deg,
-    oklch(0.7 0.2 340 / 0.3) 320deg,
-    transparent 360deg
-  );
-  filter: blur(60px);
-  mix-blend-mode: screen;
-  opacity: 0.55;
-  will-change: transform;
-}
-.aurora-1 { animation: aurora-spin 40s linear infinite; }
-.aurora-2 { animation: aurora-spin 60s linear infinite reverse; opacity: 0.4; }
-.aurora-3 { animation: aurora-spin 80s linear infinite; opacity: 0.3; transform: scale(1.3); }
-
-@keyframes aurora-spin {
-  to { transform: rotate(360deg); }
-}
-
-.star {
-  position: absolute;
-  border-radius: 9999px;
-  background: white;
-  box-shadow: 0 0 4px 1px oklch(0.95 0.02 280 / 0.6);
-  animation-name: star-twinkle;
-  animation-iteration-count: infinite;
-  animation-timing-function: ease-in-out;
-  will-change: opacity, transform;
-}
-@keyframes star-twinkle {
-  0%, 100% { opacity: 0.15; transform: scale(0.8); }
-  50%      { opacity: 1;    transform: scale(1.2); }
-}
-
-.bg-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(oklch(1 0 0 / 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(1 0 0 / 0.04) 1px, transparent 1px);
-  background-size: 60px 60px;
-  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
-  animation: grid-drift 30s linear infinite;
-}
-@keyframes grid-drift {
-  0%   { background-position: 0 0, 0 0; }
-  100% { background-position: 60px 60px, 60px 60px; }
-}
-
+/* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
-  .aurora, .star, .bg-grid, .blob-5 { animation: none !important; }
-}
-
-/* ===== More aurora variants + viz ===== */
-.aurora-4 {
-  position: absolute;
-  inset: -20%;
-  background: conic-gradient(
-    from 0deg at 50% 50%,
-    transparent 0deg,
-    oklch(0.75 0.22 50 / 0.35) 80deg,
-    transparent 160deg,
-    oklch(0.7 0.22 130 / 0.3) 240deg,
-    transparent 360deg
-  );
-  filter: blur(70px);
-  mix-blend-mode: screen;
-  animation: aurora-spin 50s linear infinite reverse;
-  will-change: transform;
-  transform: scale(1.1);
-}
-
-.viz-bar {
-  display: inline-block;
-  width: 3px;
-  margin: 0 1px;
-  background: linear-gradient(to top, oklch(0.7 0.22 285), oklch(0.78 0.2 200));
-  border-radius: 2px;
-  transition: height 0.06s linear;
-}
-
-/* ===== Hover blur + snowflakes ===== */
-.bg-blurred { filter: blur(8px) brightness(0.85); }
-
-.snowflake {
-  position: absolute;
-  top: -10px;
-  border-radius: 9999px;
-  background: white;
-  box-shadow: 0 0 6px 1px rgba(255,255,255,0.6);
-  animation-name: snow-fall;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
-  will-change: transform, opacity;
-}
-@keyframes snow-fall {
-  0%   { transform: translateY(0) translateX(0) rotate(0); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { transform: translateY(110vh) translateX(var(--snow-drift, 0px)) rotate(360deg); opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .snowflake { animation: none !important; }
+  .blob, .particle, .aurora, .star, .snowflake { animation: none !important; }
 }

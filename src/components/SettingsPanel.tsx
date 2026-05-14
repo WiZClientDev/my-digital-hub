@@ -34,16 +34,6 @@ export function SettingsPanel() {
             <Slider label="Aurora"    value={s.aurora}    onChange={(v) => setS({ ...s, aurora: v })} />
             <Slider label="Blobs"     value={s.blobs}     onChange={(v) => setS({ ...s, blobs: v })} />
             <Slider label="Particles" value={s.particles} onChange={(v) => setS({ ...s, particles: v })} />
-
-            <label className="flex items-center justify-between pt-1 text-xs">
-              <span className="text-muted-foreground">Grid overlay</span>
-              <input
-                type="checkbox"
-                checked={s.grid}
-                onChange={(e) => setS({ ...s, grid: e.target.checked })}
-                className="h-4 w-4 accent-primary"
-              />
-            </label>
           </div>
 
           <p className="mt-4 text-[10px] text-muted-foreground">

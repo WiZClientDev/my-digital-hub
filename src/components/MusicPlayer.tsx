@@ -3,11 +3,10 @@ import {
   Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ListMusic,
   Activity, AudioWaveform, Eye, EyeOff, Plus, Trash2, GripVertical, X, Check,
 } from "lucide-react";
-import { music as defaultMusic } from "@/config/site";
+import { music as defaultMusic, type Track } from "@/config/site";
 import { useLocalStorage } from "@/lib/useLocalStorage";
 
 type VizStyle = "bars" | "wave";
-type Track = { title: string; src: string };
 
 type MusicState = {
   index: number;
