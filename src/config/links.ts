@@ -37,14 +37,14 @@ export const sections: LinkSection[] = [
     items: [
       {
         label: "YouTube",
-        description: "Videos & vlogs",
-        url: "https://youtube.com/@yourchannel",
+        description: "Videos",
+        url: "https://www.youtube.com/@Nubbihax",
         icon: Youtube,
       },
       {
         label: "Twitch",
         description: "Live streams",
-        url: "https://twitch.tv/yourchannel",
+        url: "https://twitch.tv/nubbihax",
         icon: Twitch,
       },
     ],
@@ -55,13 +55,13 @@ export const sections: LinkSection[] = [
       {
         label: "Discord",
         description: "Add me as a friend",
-        url: "https://discord.com/users/yourid",
+        url: "https://discord.com/users/1344524778043871396",
         icon: MessageCircle,
       },
       {
         label: "Discord Server",
         description: "Join the community",
-        url: "https://discord.gg/yourinvite",
+        url: "",
         icon: Users,
       },
     ],
@@ -81,7 +81,7 @@ export const sections: LinkSection[] = [
       },
       {
         label: "GitHub",
-        url: "https://github.com/yourhandle",
+        url: "https://github.com/WiZClientDev",
         icon: Github,
       },
     ],
@@ -91,7 +91,7 @@ export const sections: LinkSection[] = [
     items: [
       {
         label: "Personal site",
-        url: "https://yoursite.com",
+        url: "www.offenseware.top",
         icon: Globe,
       },
     ],
