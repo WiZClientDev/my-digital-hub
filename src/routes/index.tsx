@@ -4,6 +4,7 @@ import { site, type LinkItem, type Project } from "@/config/site";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { CustomCursor } from "@/components/CustomCursor";
+import { SettingsPanel } from "@/components/SettingsPanel";
 import { faviconFor, useLinkPreview } from "@/components/LinkPreview";
 
 export const Route = createFileRoute("/")({
