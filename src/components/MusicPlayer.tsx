@@ -27,6 +27,7 @@ export function MusicPlayer() {
 
   const [playing, setPlaying] = useState(false);
   const [open, setOpen] = useState(false);
+  const [time, setTime] = useState({ current: 0, duration: 0 });
 
   // Two audio elements for crossfade
   const audioARef = useRef<HTMLAudioElement | null>(null);
@@ -212,7 +213,55 @@ export function MusicPlayer() {
   const next = () => switchTo((safeIndex + 1) % tracks.length);
   const prev = () => switchTo((safeIndex - 1 + tracks.length) % tracks.length);
 
+  // ---- Track current time / duration of the active element ----
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      const el = activeRef.current === "A" ? audioARef.current : audioBRef.current;
+      if (el) {
+        setTime({
+          current: el.currentTime || 0,
+          duration: Number.isFinite(el.duration) ? el.duration : 0,
+        });
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const seek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = activeRef.current === "A" ? audioARef.current : audioBRef.current;
+    if (!el || !time.duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    el.currentTime = Math.max(0, Math.min(time.duration, pct * time.duration));
+  };
+
+  // ---- Keyboard shortcuts ----
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (e.code === "Space") { e.preventDefault(); toggle(); }
+      else if (e.code === "ArrowRight" && (e.shiftKey || tracks.length > 1)) { e.preventDefault(); next(); }
+      else if (e.code === "ArrowLeft"  && (e.shiftKey || tracks.length > 1)) { e.preventDefault(); prev(); }
+      else if (e.key.toLowerCase() === "m") { setState((s) => ({ ...s, muted: !s.muted })); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [safeIndex, state.volume, state.muted]);
+
   if (!site.music.enabled || tracks.length === 0) return null;
+
+  const fmt = (s: number) => {
+    if (!Number.isFinite(s) || s < 0) s = 0;
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60).toString().padStart(2, "0");
+    return `${m}:${sec}`;
+  };
+  const progressPct = time.duration ? (time.current / time.duration) * 100 : 0;
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
@@ -251,6 +300,34 @@ export function MusicPlayer() {
           </label>
         </div>
       )}
+
+      {/* Progress + time */}
+      <div className="flex w-full max-w-[420px] items-center gap-2 rounded-full border border-border/60 bg-card/70 px-3 py-1.5 shadow-lg backdrop-blur-md">
+        <span className="w-9 text-right text-[10px] tabular-nums text-muted-foreground">
+          {fmt(time.current)}
+        </span>
+        <div
+          onClick={seek}
+          role="slider"
+          aria-label="Seek"
+          aria-valuemin={0}
+          aria-valuemax={Math.round(time.duration)}
+          aria-valuenow={Math.round(time.current)}
+          className="group relative h-1.5 flex-1 cursor-pointer overflow-hidden rounded-full bg-muted"
+        >
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-primary to-primary/60 transition-[width] duration-100"
+            style={{ width: `${progressPct}%` }}
+          />
+          <div
+            className="absolute top-1/2 h-3 w-3 -translate-y-1/2 -translate-x-1/2 rounded-full bg-primary opacity-0 shadow transition group-hover:opacity-100"
+            style={{ left: `${progressPct}%` }}
+          />
+        </div>
+        <span className="w-9 text-[10px] tabular-nums text-muted-foreground">
+          {fmt(time.duration)}
+        </span>
+      </div>
 
       {/* Player bar */}
       <div className="flex items-center gap-1.5 rounded-full border border-border/60 bg-card/80 px-2 py-2 shadow-lg backdrop-blur-md">
