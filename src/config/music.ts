@@ -20,7 +20,7 @@ export const music = {
   volume: 0.5,
   tracks: [
     { title: "unterwegs :)", src: "/music/unterwegs%20).mp3" },
-    { title: "Chill Beats",     src: "/music/track2.mp3" },
-    { title: "Night Drive",     src: "/music/track3.mp3" },
+    { title: "Mittelmeer",  src: "/music/Mittelmeer.mp3" },
+    { title: "Night Drive",  src: "/music/track3.mp3" },
   ] as Track[],
 };
