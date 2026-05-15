@@ -19,8 +19,6 @@ export const music = {
   /** Default volume: 0 to 1 */
   volume: 0.5,
   tracks: [
-    { title: "unterwegs :)", src: "/music/unterwegs.mp3" },
     { title: "Mittelmeer",  src: "/music/Mittelmeer.mp3" },
-    { title: "Night Drive",  src: "/music/track3.mp3" },
   ] as Track[],
 };
