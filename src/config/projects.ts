@@ -3,7 +3,6 @@
 //  To add: copy a { name, description, url } block
 //  To remove: just delete the entry
 // ============================================================
-
 export type Project = {
   name: string;
   description: string;
@@ -14,15 +13,27 @@ export type Project = {
 
 export const projects: Project[] = [
   {
-    name: "Project One",
-    description: "A short description of what this project does.",
+    name: "Voodo",
+    description: "Wide variety of cheats for any game.",
+    url: "www.voodoclient.xyz,
+    tag: "Web",
+  },
+  {
+    name: "OffenseWare",
+    description: "The Best Roblox Scripts",
+    url: "www.offenseware.top",
+    tag: "Web",
+  },
+  {
+    name: "OpaJReborn",
+    description: "The Best 1.21.11 Fabric Client",
     url: "https://example.com",
     tag: "Web",
   },
   {
-    name: "Project Two",
-    description: "Another cool thing you built.",
-    url: "https://example.com",
-    tag: "Open Source",
+    name: "Soon",
+    description: "Something new is coming.",
+    url: "",
+    tag: "Coming Soon",
   },
 ];
