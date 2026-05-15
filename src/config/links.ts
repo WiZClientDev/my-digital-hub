@@ -1,20 +1,9 @@
-// ============================================================
-//  LINKS — your socials, channels, communities, websites
-//  To add a link:  copy an item and change the values
-//  To add a section: copy a whole { title, items } block
-//  To remove: just delete the entry
-//  Icons list: https://lucide.dev/icons
-// ============================================================
-
 import {
   Youtube,
   Twitch,
   Github,
-  Globe,
   MessageCircle,
   Users,
-  Twitter,
-  Instagram,
   type LucideIcon,
 } from "lucide-react";
 
@@ -70,29 +59,9 @@ export const sections: LinkSection[] = [
     title: "Socials",
     items: [
       {
-        label: "Twitter / X",
-        url: "https://twitter.com/yourhandle",
-        icon: Twitter,
-      },
-      {
-        label: "Instagram",
-        url: "https://instagram.com/yourhandle",
-        icon: Instagram,
-      },
-      {
         label: "GitHub",
         url: "https://github.com/WiZClientDev",
         icon: Github,
-      },
-    ],
-  },
-  {
-    title: "Websites",
-    items: [
-      {
-        label: "Personal site",
-        url: "www.offenseware.top",
-        icon: Globe,
       },
     ],
   },
