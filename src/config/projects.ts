@@ -15,7 +15,7 @@ export const projects: Project[] = [
   {
     name: "Voodo",
     description: "Wide variety of cheats for any game.",
-    url: "https://www.voodoclient.xyz,
+    url: "https://www.voodoclient.xyz",
     tag: "Web",
   },
   {
