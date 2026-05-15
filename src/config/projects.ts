@@ -15,13 +15,13 @@ export const projects: Project[] = [
   {
     name: "Voodo",
     description: "Wide variety of cheats for any game.",
-    url: "www.voodoclient.xyz,
+    url: "https://www.voodoclient.xyz,
     tag: "Web",
   },
   {
     name: "OffenseWare",
     description: "The Best Roblox Scripts",
-    url: "www.offenseware.top",
+    url: "https://www.offenseware.top",
     tag: "Web",
   },
   {
